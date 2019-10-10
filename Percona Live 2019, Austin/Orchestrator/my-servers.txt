@@ -1,0 +1,40 @@
+securecrt /T /I c:\Percona-Training.key /L centos 18.221.249.171 13.58.254.93
+
+
+Public:
+18.221.249.171
+securecrt /I c:\Percona-Training.key /L centos 18.221.249.171
+
+Internal:
+10.11.238.224
+
+------------------------------------------------------------------------
+
+Public:
+13.58.254.93
+securecrt /I c:\Percona-Training.key /L centos 13.58.254.93
+
+Internal:
+10.11.180.199
+
+------------------------------------------------------------------------
+
+Public:
+13.58.89.47
+securecrt /I c:\Percona-Training.key /L centos 13.58.89.47
+
+Internal:
+10.11.81.152
+
+------------------------------------------------------------------------
+
+Public:
+13.59.3.73
+securecrt /I c:\Percona-Training.key /L centos 13.59.3.73
+
+Internal:
+10.11.95.66
+
+
+http://18.221.249.171:3000
+

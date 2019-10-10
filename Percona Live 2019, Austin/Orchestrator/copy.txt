@@ -1,0 +1,58 @@
+mysql1-T32 mysql> CREATE USER 'repl'@'%' IDENTIFIED BY 'repl1';
+
+mysql1-T32 mysql> GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
+
+mysql1-T32 mysql> SET PASSWORD FOR 'repl'@'%' = 'R3plica1234#';
+
+
+
+mysql3> STOP SLAVE; change master to master_log_file='mysqld-bin.000001', master_log_pos=4;
+
+rm -f /var/lib/mysql/auto.cnf
+systemctl restart mysql
+
+
+CREATE DATABASE meta;
+CREATE TABLE IF NOT EXISTS meta.cluster (
+  anchor TINYINT NOT NULL,
+  cluster_name VARCHAR(128) CHARSET ascii NOT NULL DEFAULT '',
+  cluster_domain VARCHAR(128) CHARSET ascii NOT NULL DEFAULT '',
+  PRIMARY KEY (anchor));
+
+
+-- On orchestrator node
+$ wget https://github.com/github/orchestrator/releases/download/v3.0.14/orchestrator-3.0.14-1.x86_64.rpm
+$ sudo yum install orchestrator-3.0.14-1.x86_64.rpm -y
+
+-- On all 4 servers
+$ wget https://github.com/github/orchestrator/releases/download/v3.0.14/orchestrator-client-3.0.14-1.x86_64.rpm
+$ sudo yum install orchestrator-client-3.0.14-1.x86_64.rpm -y
+
+ "DetectClusterAliasQuery": "SELECT IFNULL(MAX(cluster_name), '') AS cluster_alias FROM meta.cluster WHERE anchor = 1",
+ "DetectClusterDomainQuery": "SELECT IFNULL(MAX(cluster_domain), '') AS cluster_domain FROM meta.cluster WHERE anchor = 1",
+
+mysql\\d\\-T\\d+.([^.]+)
+
+"AutoPseudoGTID": true,
+
+
+-- /etc/percona-server.conf.d/mysqld.cnf
+[mysqld]
+...
+report-host="mysql1.dc1"          -- Use full hostname
+report-port=3306                  -- Optional
+master-info-repository=TABLE      -- Will use later
+relay-log-info-repository=TABLE   -- Will use later
+
+mysql1> CREATE USER 'orcUser'@'10.%' IDENTIFIED BY 'orcPass1234#';
+mysql1> GRANT SUPER, PROCESS, REPLICATION SLAVE, REPLICATION CLIENT, RELOAD 
+        ON *.* TO 'orcUser'@'10.%';
+mysql1> GRANT DROP ON _pseudo_gtid_.* to 'orcUser'@'10.%';
+mysql1> GRANT SELECT ON mysql.slave_master_info TO 'orcUser'@'10.%';
+mysql1> GRANT SELECT ON meta.* TO 'orcUser'@'10.%';
+
+mysql2/3> STOP SLAVE;
+mysql2/3> CHANGE MASTER TO MASTER_CONNECT_RETRY=1;
+mysql2/3> START SLAVE;
+
+mysql1> INSERT INTO meta.cluster VALUES (1, 'enterprise', 'starfleet');
